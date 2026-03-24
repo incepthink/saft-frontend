@@ -16,7 +16,7 @@ const App = () => (
     <TooltipProvider>
       <Sonner />
       <WalletProvider>
-        <BrowserRouter>
+        <BrowserRouter basename="/examples/safty">
           <Routes>
             <Route path="/" element={<ExplorePage />} />
             <Route path="/listing/:id" element={<ListingDetailPage />} />

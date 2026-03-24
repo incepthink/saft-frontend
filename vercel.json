@@ -1,0 +1,7 @@
+{
+  "rewrites": [
+    { "source": "/examples/safty/assets/:path*", "destination": "/assets/:path*" },
+    { "source": "/examples/safty/:path*", "destination": "/index.html" },
+    { "source": "/examples/safty", "destination": "/index.html" }
+  ]
+}
