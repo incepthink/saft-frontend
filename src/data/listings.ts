@@ -123,6 +123,91 @@ export function getHolders(listingId: string): Holder[] {
   return listingId === "anime-chain" ? animeHolders : novaHolders;
 }
 
+export interface PriceCandle {
+  date: string;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+}
+
+export const animePriceData: PriceCandle[] = [
+  { date: "Aug 2024", open: 0.0055, high: 0.0068, low: 0.0050, close: 0.0063 },
+  { date: "Sep 2024", open: 0.0063, high: 0.0075, low: 0.0058, close: 0.0070 },
+  { date: "Oct 2024", open: 0.0070, high: 0.0082, low: 0.0064, close: 0.0078 },
+  { date: "Nov 2024", open: 0.0078, high: 0.0095, low: 0.0072, close: 0.0088 },
+  { date: "Dec 2024", open: 0.0088, high: 0.0110, low: 0.0081, close: 0.0102 },
+  { date: "Jan 2025", open: 0.0102, high: 0.0130, low: 0.0094, close: 0.0115 },
+  { date: "Feb 2025", open: 0.0115, high: 0.0125, low: 0.0090, close: 0.0095 },
+  { date: "Mar 2025", open: 0.0095, high: 0.0112, low: 0.0085, close: 0.0108 },
+  { date: "Apr 2025", open: 0.0108, high: 0.0140, low: 0.0100, close: 0.0135 },
+  { date: "May 2025", open: 0.0135, high: 0.0155, low: 0.0118, close: 0.0120 },
+  { date: "Jun 2025", open: 0.0120, high: 0.0138, low: 0.0105, close: 0.0130 },
+  { date: "Jul 2025", open: 0.0130, high: 0.0148, low: 0.0115, close: 0.0120 },
+];
+
+export const novaPriceData: PriceCandle[] = [
+  { date: "Nov 2024", open: 0.022, high: 0.028, low: 0.019, close: 0.026 },
+  { date: "Dec 2024", open: 0.026, high: 0.035, low: 0.023, close: 0.032 },
+  { date: "Jan 2025", open: 0.032, high: 0.042, low: 0.028, close: 0.038 },
+  { date: "Feb 2025", open: 0.038, high: 0.048, low: 0.034, close: 0.044 },
+  { date: "Mar 2025", open: 0.044, high: 0.052, low: 0.036, close: 0.040 },
+  { date: "Apr 2025", open: 0.040, high: 0.055, low: 0.037, close: 0.051 },
+  { date: "May 2025", open: 0.051, high: 0.060, low: 0.044, close: 0.048 },
+  { date: "Jun 2025", open: 0.048, high: 0.058, low: 0.040, close: 0.054 },
+  { date: "Jul 2025", open: 0.054, high: 0.065, low: 0.049, close: 0.062 },
+  { date: "Aug 2025", open: 0.062, high: 0.072, low: 0.054, close: 0.058 },
+  { date: "Sep 2025", open: 0.058, high: 0.068, low: 0.050, close: 0.064 },
+  { date: "Oct 2025", open: 0.064, high: 0.075, low: 0.058, close: 0.050 },
+];
+
+export function getPriceData(listingId: string): PriceCandle[] {
+  return listingId === "1" ? animePriceData : novaPriceData;
+}
+
+function generateCandlesticks(
+  basePrice: number,
+  days: number,
+): { time: string; open: number; high: number; low: number; close: number }[] {
+  const data: {
+    time: string;
+    open: number;
+    high: number;
+    low: number;
+    close: number;
+  }[] = [];
+  let price = basePrice * 0.85;
+  const now = new Date();
+  for (let i = days; i >= 0; i--) {
+    const date = new Date(now);
+    date.setDate(date.getDate() - i);
+    const dateStr = date.toISOString().split("T")[0];
+    const volatility = basePrice * 0.03;
+    const drift = (basePrice - price) * 0.02;
+    const open = price;
+    const change1 = (Math.random() - 0.45) * volatility + drift;
+    const close = open + change1;
+    const high = Math.max(open, close) + Math.random() * volatility * 0.5;
+    const low = Math.min(open, close) - Math.random() * volatility * 0.5;
+    price = close;
+    data.push({
+      time: dateStr,
+      open: +open.toFixed(6),
+      high: +high.toFixed(6),
+      low: +low.toFixed(6),
+      close: +close.toFixed(6),
+    });
+  }
+  return data;
+}
+
+export const CANDLESTICK_DATA: Record<
+  string,
+  { time: string; open: number; high: number; low: number; close: number }[]
+> = Object.fromEntries(
+  listings.map((l) => [l.id, generateCandlesticks(l.tokenPrice, 90)]),
+);
+
 export function truncatePartyId(partyId: string): string {
   const [hint, fingerprint] = partyId.split("::");
   if (!fingerprint) return partyId;

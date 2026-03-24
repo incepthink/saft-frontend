@@ -41,7 +41,7 @@ export function VestingChart({ listing, userTokensHeld }: VestingChartProps) {
   }));
 
   return (
-    <div className="rounded-xl border border-border bg-card p-6">
+    <div className="rounded-xl p-0">
       <h3 className="font-display font-semibold text-lg mb-6">
         Token Release Schedule
       </h3>

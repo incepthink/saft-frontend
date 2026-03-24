@@ -49,9 +49,9 @@ export function ListingCard({ listing }: { listing: Listing }) {
 
       <div className="space-y-2 mb-4 text-sm">
         <div className="flex justify-between">
-          <span className="text-muted-foreground">Target Raise</span>
+          <span className="text-muted-foreground">FDV</span>
           <span className="font-medium text-foreground">
-            ${listing.raiseTarget.toLocaleString()}
+            ${listing.fdv.toLocaleString()}
           </span>
         </div>
         <div className="flex justify-between">
@@ -59,10 +59,9 @@ export function ListingCard({ listing }: { listing: Listing }) {
           <span className="font-medium text-foreground">{listing.tgeDate}</span>
         </div>
         <div className="flex justify-between">
-          <span className="text-muted-foreground">Release Info</span>
-          <span className="font-medium text-foreground text-right">
-            {listing.lockPeriodMonths}mo lock, {listing.releaseDurationMonths}mo
-            release
+          <span className="text-muted-foreground">Min Investment</span>
+          <span className="font-medium text-foreground">
+            ${listing.minInvestment.toLocaleString()}
           </span>
         </div>
       </div>

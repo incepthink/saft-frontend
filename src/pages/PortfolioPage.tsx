@@ -122,7 +122,7 @@ function buildTimelineData(positions: ApiPosition[]) {
       if (months[label] !== undefined) {
         const delta = Math.round(row.tokensReleased * pos.safty_saft.tokenPrice);
         cumulative[key] = (cumulative[key] ?? 0) + delta;
-        months[label][key] = (months[label][key] ?? 0) + cumulative[key];
+        months[label][key] = cumulative[key];
       }
     }
   }

@@ -11,6 +11,7 @@ import {
 import { Navbar } from "@/components/Navbar";
 import { SwapCard } from "@/components/SwapCard";
 import { VestingChart } from "@/components/VestingChart";
+import { PriceChart } from "@/components/PriceChart";
 import { useWallet } from "@/contexts/WalletContext";
 import { Badge } from "@/components/ui/badge";
 import { axiosInstance } from "@/utils/axiosInstance";
@@ -89,21 +90,17 @@ export default function ListingDetailPage() {
   const remainingRows = releaseSchedule.slice(listing.lockPeriodMonths + 9);
   const visibleRows = [tgeRow, lockEndRow, ...initialReleaseRows, ...(showAllRows ? remainingRows : [])].filter(Boolean);
 
-  const stats = [
+  const projectStats = [
     { label: "Token", value: listing.ticker },
-    { label: "Token Price", value: `$${listing.tokenPrice}` },
     { label: "FDV", value: `$${listing.fdv.toLocaleString()}` },
     { label: "Total Supply", value: listing.totalSupply.toLocaleString() },
-    {
-      label: "Target Raise",
-      value: `$${listing.raiseTarget.toLocaleString()}`,
-    },
-    { label: "TGE Unlock", value: `${listing.tgeUnlockPercent}%` },
-    { label: "Lock Period", value: `${listing.lockPeriodMonths} months` },
-    {
-      label: "Release Duration",
-      value: `${listing.releaseDurationMonths} months`,
-    },
+    { label: "TGE Date", value: listing.tgeDate },
+  ];
+
+  const tokenStats = [
+    { label: "Token", value: listing.ticker },
+    { label: "Token Price", value: `$${listing.tokenPrice}` },
+    { label: "Total Allocation", value: `$${listing.raiseTarget.toLocaleString()}` },
     { label: "Accepted", value: listing.acceptedCurrencies.join(", ") },
     {
       label: "Min Investment",
@@ -129,7 +126,7 @@ export default function ListingDetailPage() {
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Left column */}
           <div className="flex-1 space-y-8 min-w-0">
-            {/* Section A — Project Info */}
+            {/* Section A — Project Details */}
             <div className="rounded-xl border border-border bg-card p-6">
               <div className="flex items-start gap-4 mb-4">
                 <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-secondary text-3xl">
@@ -168,7 +165,7 @@ export default function ListingDetailPage() {
               </div>
 
               <div className="grid grid-cols-2 gap-3 mt-6">
-                {stats.map((s) => (
+                {projectStats.map((s) => (
                   <div
                     key={s.label}
                     className="flex justify-between rounded-lg bg-muted px-4 py-3"
@@ -184,11 +181,39 @@ export default function ListingDetailPage() {
               </div>
             </div>
 
-            {/* Section B — Vesting Chart */}
-            <VestingChart
-              listing={listing}
-              userTokensHeld={tokensHeld ?? undefined}
-            />
+            {/* Section B — Token Details */}
+            <div className="rounded-xl border border-border bg-card p-6">
+              <h3 className="font-display font-semibold text-lg mb-4">
+                Token Details
+              </h3>
+              <div className="grid grid-cols-2 gap-3 mb-6">
+                {tokenStats.map((s) => (
+                  <div
+                    key={s.label}
+                    className="flex justify-between rounded-lg bg-muted px-4 py-3"
+                  >
+                    <span className="text-sm text-muted-foreground">
+                      {s.label}
+                    </span>
+                    <span className="text-sm font-medium text-foreground">
+                      {s.value}
+                    </span>
+                  </div>
+                ))}
+              </div>
+              <VestingChart
+                listing={listing}
+                userTokensHeld={tokensHeld ?? undefined}
+              />
+            </div>
+
+            {/* Section B2 — Token Price Chart */}
+            <div className="rounded-xl border border-border bg-card p-6">
+              <h3 className="font-display font-semibold text-lg mb-4">
+                Token Price — {listing.ticker}
+              </h3>
+              <PriceChart listing={listing} />
+            </div>
 
             {/* Section C — Your Position */}
             {isConnected && tokensHeld !== null && (
