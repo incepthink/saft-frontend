@@ -18,7 +18,10 @@ export function ListingCard({ listing }: { listing: Listing }) {
   const pct = listing.status === "LIVE" ? 62 : 0;
 
   return (
-    <Link to={`/listing/${listing.id}`} className="group flex flex-col rounded-xl border border-border bg-card p-6 card-hover">
+    <Link
+      to={`/listing/${listing.id}`}
+      className="group flex flex-col rounded-xl border border-border bg-card p-6 card-hover"
+    >
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-3">
           <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-secondary text-2xl">
@@ -42,18 +45,22 @@ export function ListingCard({ listing }: { listing: Listing }) {
         <Badge variant="outline" className={categoryColor()}>
           {listing.category}
         </Badge>
-        <span className="text-sm text-muted-foreground">
-          {listing.ticker} — ${listing.tokenPrice}
+      </div>
+
+      <div className="flex justify-between items-center mb-3">
+        <span className="text-sm text-muted-foreground">Token Price</span>
+        <span className="font-display font-bold text-xl text-primary">
+          ${listing.tokenPrice}
         </span>
       </div>
 
       <div className="space-y-2 mb-4 text-sm">
-        <div className="flex justify-between">
+        {/* <div className="flex justify-between">
           <span className="text-muted-foreground">FDV</span>
           <span className="font-medium text-foreground">
             ${listing.fdv.toLocaleString()}
           </span>
-        </div>
+        </div> */}
         <div className="flex justify-between">
           <span className="text-muted-foreground">TGE Date</span>
           <span className="font-medium text-foreground">{listing.tgeDate}</span>

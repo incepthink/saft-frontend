@@ -98,6 +98,11 @@ export function SwapCard({ listing }: { listing: Listing }) {
         ))}
       </div>
 
+      {tab === "SELL" ? (
+        <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+          <p className="text-lg font-semibold">Coming Soon...</p>
+        </div>
+      ) : (
       <div className="space-y-4">
         {/* You Pay */}
         <div>
@@ -191,6 +196,7 @@ export function SwapCard({ listing }: { listing: Listing }) {
           </Button>
         )}
       </div>
+      )}
     </div>
   );
 }

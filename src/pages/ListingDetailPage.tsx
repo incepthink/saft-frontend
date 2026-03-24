@@ -1,7 +1,6 @@
-import { useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, ExternalLink } from "lucide-react";
+import { ArrowLeft, ExternalLink, Info } from "lucide-react";
 import {
   listings,
   getHolders,
@@ -26,7 +25,6 @@ export default function ListingDetailPage() {
   const { id } = useParams<{ id: string }>();
   const listing = listings.find((l) => l.id === id);
   const { isConnected, partyId } = useWallet();
-  const [showAllRows, setShowAllRows] = useState(false);
 
   const { data: apiBalance = null } = useQuery({
     queryKey: ["position", Number(id)],
@@ -58,9 +56,7 @@ export default function ListingDetailPage() {
 
   const tokensHeld = apiBalance;
   const releaseSchedule =
-    tokensHeld !== null
-      ? generateUserReleaseSchedule(listing, tokensHeld)
-      : [];
+    tokensHeld !== null ? generateUserReleaseSchedule(listing, tokensHeld) : [];
 
   // Derive position summary from release schedule
   const today = new Date();
@@ -76,31 +72,39 @@ export default function ListingDetailPage() {
       nextReleaseAmount = row.tokensReleased;
     }
   }
-  const stillLocked = tokensHeld !== null ? Math.max(0, tokensHeld - alreadyReleased) : 0;
-  const estValue = tokensHeld !== null ? Math.round(tokensHeld * listing.tokenPrice) : 0;
+  const stillLocked =
+    tokensHeld !== null ? Math.max(0, tokensHeld - alreadyReleased) : 0;
+  const estValue =
+    tokensHeld !== null ? Math.round(tokensHeld * listing.tokenPrice) : 0;
 
   const holders = getHolders(listing.id);
 
-  const tgeRow = releaseSchedule[0];
-  const lockEndRow = releaseSchedule[listing.lockPeriodMonths];
-  const initialReleaseRows = releaseSchedule.slice(
-    listing.lockPeriodMonths + 1,
-    listing.lockPeriodMonths + 9,
+  const saftyTokenPrice = listing.tokenPrice * 100;
+  const totalSaftyTokens = Math.round(listing.raiseTarget / saftyTokenPrice);
+  const totalUnderlyingTokens = Math.round(
+    listing.raiseTarget / listing.tokenPrice,
   );
-  const remainingRows = releaseSchedule.slice(listing.lockPeriodMonths + 9);
-  const visibleRows = [tgeRow, lockEndRow, ...initialReleaseRows, ...(showAllRows ? remainingRows : [])].filter(Boolean);
+  const raisedSaftyTokens = Math.round(listing.amountRaised / saftyTokenPrice);
+
+  const nextReleaseRow = releaseSchedule.find((row) => {
+    const d = new Date(row.date.replace(/\s*\(TGE\)/, ""));
+    return d > today && row.tokensReleased > 0;
+  });
 
   const projectStats = [
     { label: "Token", value: listing.ticker },
-    { label: "FDV", value: `$${listing.fdv.toLocaleString()}` },
-    { label: "Total Supply", value: listing.totalSupply.toLocaleString() },
+    // { label: "FDV", value: `$${listing.fdv.toLocaleString()}` },
+    // { label: "Total Supply", value: listing.totalSupply.toLocaleString() },
     { label: "TGE Date", value: listing.tgeDate },
   ];
 
   const tokenStats = [
-    { label: "Token", value: listing.ticker },
+    { label: "Token", value: listing.safty_ticker },
     { label: "Token Price", value: `$${listing.tokenPrice}` },
-    { label: "Total Allocation", value: `$${listing.raiseTarget.toLocaleString()}` },
+    {
+      label: "Total Allocation",
+      value: `${totalSaftyTokens.toLocaleString()} ${listing.safty_ticker}`, //$${listing.raiseTarget.toLocaleString()} /
+    },
     { label: "Accepted", value: listing.acceptedCurrencies.join(", ") },
     {
       label: "Min Investment",
@@ -195,12 +199,58 @@ export default function ListingDetailPage() {
                     <span className="text-sm text-muted-foreground">
                       {s.label}
                     </span>
-                    <span className="text-sm font-medium text-foreground">
-                      {s.value}
-                    </span>
+                    {s.label === "Token" ? (
+                      <span className="flex items-center gap-1 text-sm font-medium text-foreground">
+                        {s.value}
+                        <span className="relative group">
+                          <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+                          <span className="invisible group-hover:visible absolute right-0 bottom-full mb-1.5 w-max max-w-[200px] rounded-md bg-popover border border-border px-2.5 py-1.5 text-xs text-foreground shadow-md z-10 whitespace-nowrap">
+                            1 {listing.safty_ticker} = 100 {listing.ticker}
+                          </span>
+                        </span>
+                      </span>
+                    ) : s.label === "Token Price" ? (
+                      <span className="text-sm font-semibold text-primary">
+                        {s.value}
+                      </span>
+                    ) : (
+                      <span className="text-sm font-medium text-foreground">
+                        {s.value}
+                      </span>
+                    )}
                   </div>
                 ))}
               </div>
+              {/* Sale Progress Bar */}
+              <div className="mb-6">
+                <div className="flex justify-between text-sm mb-2">
+                  <span className="text-muted-foreground">Sale Progress</span>
+                  <span className="font-medium text-foreground">
+                    {raisedSaftyTokens.toLocaleString()} /{" "}
+                    {totalSaftyTokens.toLocaleString()} {listing.safty_ticker}
+                  </span>
+                </div>
+                <div className="relative h-3 rounded-full bg-secondary overflow-hidden">
+                  <div
+                    className="absolute left-0 top-0 h-full rounded-full transition-all"
+                    style={{
+                      width: `${Math.min(100, Math.round((listing.amountRaised / listing.raiseTarget) * 100))}%`,
+                      background:
+                        "linear-gradient(90deg, hsl(193,70%,35%) 0%, hsl(193,100%,55%) 100%)",
+                    }}
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground mt-1.5">
+                  {Math.min(
+                    100,
+                    Math.round(
+                      (listing.amountRaised / listing.raiseTarget) * 100,
+                    ),
+                  )}
+                  % Filled
+                </p>
+              </div>
+
               <VestingChart
                 listing={listing}
                 userTokensHeld={tokensHeld ?? undefined}
@@ -208,18 +258,18 @@ export default function ListingDetailPage() {
             </div>
 
             {/* Section B2 — Token Price Chart */}
-            <div className="rounded-xl border border-border bg-card p-6">
+            {/* <div className="rounded-xl border border-border bg-card p-6">
               <h3 className="font-display font-semibold text-lg mb-4">
                 Token Price — {listing.ticker}
               </h3>
               <PriceChart listing={listing} />
-            </div>
+            </div> */}
 
             {/* Section C — Your Position */}
             {isConnected && tokensHeld !== null && (
               <div className="rounded-xl border border-border bg-card p-6">
                 <h3 className="font-display font-semibold text-lg mb-4">
-                  Your Position in {listing.ticker} SAFT
+                  Your Position in {listing.safty_ticker}
                 </h3>
                 <div className="grid grid-cols-3 gap-4 mb-6">
                   <div className="rounded-lg bg-muted p-4">
@@ -247,10 +297,6 @@ export default function ListingDetailPage() {
                     </div>
                   </div>
                 </div>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Next Release: {nextReleaseDate} —{" "}
-                  {nextReleaseAmount.toLocaleString()} tokens
-                </p>
 
                 <h4 className="font-semibold text-sm mb-3">
                   Your Release Schedule
@@ -263,7 +309,10 @@ export default function ListingDetailPage() {
                           Date
                         </th>
                         <th className="pb-2 text-muted-foreground font-medium">
-                          Tokens Released
+                          {listing.ticker} Released
+                        </th>
+                        <th className="pb-2 text-muted-foreground font-medium">
+                          {listing.safty_ticker} Released
                         </th>
                         <th className="pb-2 text-muted-foreground font-medium">
                           Cumulative %
@@ -271,29 +320,27 @@ export default function ListingDetailPage() {
                       </tr>
                     </thead>
                     <tbody>
-                      {visibleRows.map((row, i) => (
-                        <tr key={i} className="border-b border-border/50">
-                          <td className="py-2 text-foreground">{row.date}</td>
+                      {nextReleaseRow && (
+                        <tr className="border-b border-border/50">
                           <td className="py-2 text-foreground">
-                            {row.tokensReleased.toLocaleString()}
+                            {nextReleaseRow.date}
                           </td>
                           <td className="py-2 text-foreground">
-                            {row.cumulativePercent}%
+                            {Math.round(
+                              (nextReleaseRow.tokensReleased / tokensHeld!) *
+                                totalUnderlyingTokens,
+                            ).toLocaleString()}
+                          </td>
+                          <td className="py-2 text-foreground">
+                            {nextReleaseRow.tokensReleased.toLocaleString()}
+                          </td>
+                          <td className="py-2 text-foreground">
+                            {nextReleaseRow.cumulativePercent}%
                           </td>
                         </tr>
-                      ))}
+                      )}
                     </tbody>
                   </table>
-                  {remainingRows.length > 0 && (
-                    <button
-                      onClick={() => setShowAllRows((v) => !v)}
-                      className="mt-3 text-sm text-primary hover:underline"
-                    >
-                      {showAllRows
-                        ? "Show less"
-                        : `Show ${remainingRows.length} more months`}
-                    </button>
-                  )}
                 </div>
               </div>
             )}

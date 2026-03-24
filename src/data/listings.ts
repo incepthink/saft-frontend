@@ -4,6 +4,7 @@ export type Category = "DeFi" | "GameFi" | "Infra" | "L1" | "L2";
 export interface Listing {
   id: string;
   name: string;
+  safty_ticker: string;
   ticker: string;
   category: Category;
   status: ListingStatus;
@@ -11,6 +12,7 @@ export interface Listing {
   fdv: number;
   totalSupply: number;
   raiseTarget: number;
+  amountRaised: number;
   minInvestment: number;
   maxInvestment: number;
   acceptedCurrencies: string[];
@@ -43,12 +45,14 @@ export const listings: Listing[] = [
     id: "1",
     name: "Anime Chain",
     ticker: "$ANIME",
+    safty_ticker: "$stANIME",
     category: "GameFi",
     status: "LIVE",
     tokenPrice: 0.012,
     fdv: 120_000_000,
     totalSupply: 10_000_000_000,
     raiseTarget: 5_000_000,
+    amountRaised: 3_800_000,
     minInvestment: 500,
     maxInvestment: 50_000,
     acceptedCurrencies: ["USDC"],
@@ -66,11 +70,13 @@ export const listings: Listing[] = [
     name: "NovaDeFi",
     ticker: "$NOVA",
     category: "DeFi",
+    safty_ticker: "$stNOVA",
     status: "UPCOMING",
     tokenPrice: 0.05,
     fdv: 50_000_000,
     totalSupply: 1_000_000_000,
     raiseTarget: 2_000_000,
+    amountRaised: 400_000,
     minInvestment: 250,
     maxInvestment: 25_000,
     acceptedCurrencies: ["USDC"],
@@ -132,18 +138,18 @@ export interface PriceCandle {
 }
 
 export const animePriceData: PriceCandle[] = [
-  { date: "Aug 2024", open: 0.0055, high: 0.0068, low: 0.0050, close: 0.0063 },
-  { date: "Sep 2024", open: 0.0063, high: 0.0075, low: 0.0058, close: 0.0070 },
-  { date: "Oct 2024", open: 0.0070, high: 0.0082, low: 0.0064, close: 0.0078 },
+  { date: "Aug 2024", open: 0.0055, high: 0.0068, low: 0.005, close: 0.0063 },
+  { date: "Sep 2024", open: 0.0063, high: 0.0075, low: 0.0058, close: 0.007 },
+  { date: "Oct 2024", open: 0.007, high: 0.0082, low: 0.0064, close: 0.0078 },
   { date: "Nov 2024", open: 0.0078, high: 0.0095, low: 0.0072, close: 0.0088 },
-  { date: "Dec 2024", open: 0.0088, high: 0.0110, low: 0.0081, close: 0.0102 },
-  { date: "Jan 2025", open: 0.0102, high: 0.0130, low: 0.0094, close: 0.0115 },
-  { date: "Feb 2025", open: 0.0115, high: 0.0125, low: 0.0090, close: 0.0095 },
+  { date: "Dec 2024", open: 0.0088, high: 0.011, low: 0.0081, close: 0.0102 },
+  { date: "Jan 2025", open: 0.0102, high: 0.013, low: 0.0094, close: 0.0115 },
+  { date: "Feb 2025", open: 0.0115, high: 0.0125, low: 0.009, close: 0.0095 },
   { date: "Mar 2025", open: 0.0095, high: 0.0112, low: 0.0085, close: 0.0108 },
-  { date: "Apr 2025", open: 0.0108, high: 0.0140, low: 0.0100, close: 0.0135 },
-  { date: "May 2025", open: 0.0135, high: 0.0155, low: 0.0118, close: 0.0120 },
-  { date: "Jun 2025", open: 0.0120, high: 0.0138, low: 0.0105, close: 0.0130 },
-  { date: "Jul 2025", open: 0.0130, high: 0.0148, low: 0.0115, close: 0.0120 },
+  { date: "Apr 2025", open: 0.0108, high: 0.014, low: 0.01, close: 0.0135 },
+  { date: "May 2025", open: 0.0135, high: 0.0155, low: 0.0118, close: 0.012 },
+  { date: "Jun 2025", open: 0.012, high: 0.0138, low: 0.0105, close: 0.013 },
+  { date: "Jul 2025", open: 0.013, high: 0.0148, low: 0.0115, close: 0.012 },
 ];
 
 export const novaPriceData: PriceCandle[] = [
@@ -151,14 +157,14 @@ export const novaPriceData: PriceCandle[] = [
   { date: "Dec 2024", open: 0.026, high: 0.035, low: 0.023, close: 0.032 },
   { date: "Jan 2025", open: 0.032, high: 0.042, low: 0.028, close: 0.038 },
   { date: "Feb 2025", open: 0.038, high: 0.048, low: 0.034, close: 0.044 },
-  { date: "Mar 2025", open: 0.044, high: 0.052, low: 0.036, close: 0.040 },
-  { date: "Apr 2025", open: 0.040, high: 0.055, low: 0.037, close: 0.051 },
-  { date: "May 2025", open: 0.051, high: 0.060, low: 0.044, close: 0.048 },
-  { date: "Jun 2025", open: 0.048, high: 0.058, low: 0.040, close: 0.054 },
+  { date: "Mar 2025", open: 0.044, high: 0.052, low: 0.036, close: 0.04 },
+  { date: "Apr 2025", open: 0.04, high: 0.055, low: 0.037, close: 0.051 },
+  { date: "May 2025", open: 0.051, high: 0.06, low: 0.044, close: 0.048 },
+  { date: "Jun 2025", open: 0.048, high: 0.058, low: 0.04, close: 0.054 },
   { date: "Jul 2025", open: 0.054, high: 0.065, low: 0.049, close: 0.062 },
   { date: "Aug 2025", open: 0.062, high: 0.072, low: 0.054, close: 0.058 },
-  { date: "Sep 2025", open: 0.058, high: 0.068, low: 0.050, close: 0.064 },
-  { date: "Oct 2025", open: 0.064, high: 0.075, low: 0.058, close: 0.050 },
+  { date: "Sep 2025", open: 0.058, high: 0.068, low: 0.05, close: 0.064 },
+  { date: "Oct 2025", open: 0.064, high: 0.075, low: 0.058, close: 0.05 },
 ];
 
 export function getPriceData(listingId: string): PriceCandle[] {

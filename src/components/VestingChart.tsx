@@ -24,19 +24,28 @@ function tgeToMonthLabel(listing: Listing, offset: number): string {
   return `${MONTH_NAMES[m]} ${y}`;
 }
 
+function formatTokenCount(v: number): string {
+  if (v >= 1_000_000) return `${(v / 1_000_000).toFixed(1)}M`;
+  if (v >= 1_000) return `${Math.round(v / 1_000)}K`;
+  return String(v);
+}
+
 interface VestingChartProps {
   listing: Listing;
   userTokensHeld?: number;
 }
 
 export function VestingChart({ listing, userTokensHeld }: VestingChartProps) {
-  const data = generateReleaseSchedule(listing);
+  const schedule = generateReleaseSchedule(listing);
   const hasUser = userTokensHeld !== undefined && userTokensHeld > 0;
 
-  const chartData = data.map((pt) => ({
-    ...pt,
+  const totalUnderlyingTokens = Math.round(listing.raiseTarget / listing.tokenPrice);
+
+  const chartData = schedule.map((pt) => ({
+    month: pt.month,
+    totalTokens: Math.round((pt.cumulative / 100) * totalUnderlyingTokens),
     ...(hasUser
-      ? { userUsd: Math.round((pt.cumulative / 100) * userTokensHeld! * listing.tokenPrice) }
+      ? { userTokens: Math.round((pt.cumulative / 100) * userTokensHeld!) }
       : {}),
   }));
 
@@ -92,10 +101,10 @@ export function VestingChart({ listing, userTokensHeld }: VestingChartProps) {
             />
             <YAxis
               yAxisId="left"
-              stroke="hsl(0,0%,55%)"
+              stroke="hsl(193,100%,50%)"
               fontSize={12}
-              tickFormatter={(v) => `${v}%`}
-              domain={[0, 100]}
+              tickFormatter={(v) => formatTokenCount(v)}
+              domain={[0, totalUnderlyingTokens]}
             />
             {hasUser && (
               <YAxis
@@ -103,7 +112,8 @@ export function VestingChart({ listing, userTokensHeld }: VestingChartProps) {
                 orientation="right"
                 stroke="hsl(142,71%,45%)"
                 fontSize={12}
-                tickFormatter={(v) => `$${v.toLocaleString()}`}
+                tickFormatter={(v) => formatTokenCount(v)}
+                domain={[0, userTokensHeld!]}
               />
             )}
             <Tooltip
@@ -114,13 +124,21 @@ export function VestingChart({ listing, userTokensHeld }: VestingChartProps) {
                 color: "hsl(0,0%,95%)",
               }}
               formatter={(v: number, name: string) =>
-                name === "userUsd"
-                  ? [`$${v.toLocaleString()}`, "Your Unlocked Value"]
-                  : [`${v}%`, "Unlocked"]
+                name === "userTokens"
+                  ? [`${v.toLocaleString()} ${listing.ticker}`, "Your Released"]
+                  : [`${v.toLocaleString()} ${listing.ticker}`, "Total Released"]
               }
               labelFormatter={(l) => tgeToMonthLabel(listing, Number(l))}
             />
-            {hasUser && <Legend formatter={(v) => v === "userUsd" ? "Your Value ($)" : "Unlocked (%)"} />}
+            {hasUser && (
+              <Legend
+                formatter={(v) =>
+                  v === "userTokens"
+                    ? `Your Release (${listing.ticker})`
+                    : `Total Allocation Release (${listing.ticker})`
+                }
+              />
+            )}
             <ReferenceLine
               yAxisId="left"
               x={0}
@@ -148,7 +166,7 @@ export function VestingChart({ listing, userTokensHeld }: VestingChartProps) {
             <Area
               yAxisId="left"
               type="monotone"
-              dataKey="cumulative"
+              dataKey="totalTokens"
               stroke="hsl(193,100%,50%)"
               strokeWidth={2}
               fillOpacity={1}
@@ -158,7 +176,7 @@ export function VestingChart({ listing, userTokensHeld }: VestingChartProps) {
               <Area
                 yAxisId="right"
                 type="monotone"
-                dataKey="userUsd"
+                dataKey="userTokens"
                 stroke="hsl(142,71%,45%)"
                 strokeWidth={2}
                 fillOpacity={1}
