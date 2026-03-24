@@ -407,6 +407,7 @@ export default function SubmitPage() {
                   <label
                     key={c}
                     className="flex items-center gap-2 cursor-pointer"
+                    onClick={() => toggleCurrency(c)}
                   >
                     <div
                       className={`h-5 w-5 rounded border-2 flex items-center justify-center ${form.acceptedCurrencies.includes(c) ? "bg-primary border-primary" : "border-border"}`}

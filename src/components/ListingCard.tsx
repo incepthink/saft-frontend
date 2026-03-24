@@ -18,7 +18,7 @@ export function ListingCard({ listing }: { listing: Listing }) {
   const pct = listing.status === "LIVE" ? 62 : 0;
 
   return (
-    <div className="group flex flex-col rounded-xl border border-border bg-card p-6 card-hover">
+    <Link to={`/listing/${listing.id}`} className="group flex flex-col rounded-xl border border-border bg-card p-6 card-hover">
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-3">
           <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-secondary text-2xl">
@@ -82,12 +82,9 @@ export function ListingCard({ listing }: { listing: Listing }) {
         </div>
       )}
 
-      <Link
-        to={`/listing/${listing.id}`}
-        className="mt-auto flex items-center justify-center gap-2 rounded-lg bg-primary/10 py-2.5 text-sm font-medium text-primary transition-all hover:bg-primary/20 group-hover:bg-primary group-hover:text-primary-foreground"
-      >
+      <div className="mt-auto flex items-center justify-center gap-2 rounded-lg bg-primary/10 py-2.5 text-sm font-medium text-primary transition-all hover:bg-primary/20 group-hover:bg-primary group-hover:text-primary-foreground">
         View Deal <ArrowRight className="h-4 w-4" />
-      </Link>
-    </div>
+      </div>
+    </Link>
   );
 }
