@@ -308,14 +308,11 @@ export default function ListingDetailPage() {
                         <th className="pb-2 text-muted-foreground font-medium">
                           Date
                         </th>
-                        <th className="pb-2 text-muted-foreground font-medium">
+                        <th className="pb-2 text-muted-foreground font-medium text-center">
                           {listing.ticker} Released
                         </th>
-                        <th className="pb-2 text-muted-foreground font-medium">
+                        <th className="pb-2 text-muted-foreground font-medium text-center">
                           {listing.safty_ticker} Released
-                        </th>
-                        <th className="pb-2 text-muted-foreground font-medium">
-                          Cumulative %
                         </th>
                       </tr>
                     </thead>
@@ -325,17 +322,14 @@ export default function ListingDetailPage() {
                           <td className="py-2 text-foreground">
                             {nextReleaseRow.date}
                           </td>
-                          <td className="py-2 text-foreground">
+                          <td className="py-2 text-foreground text-center">
                             {Math.round(
                               (nextReleaseRow.tokensReleased / tokensHeld!) *
                                 totalUnderlyingTokens,
                             ).toLocaleString()}
                           </td>
-                          <td className="py-2 text-foreground">
+                          <td className="py-2 text-foreground text-center">
                             {nextReleaseRow.tokensReleased.toLocaleString()}
-                          </td>
-                          <td className="py-2 text-foreground">
-                            {nextReleaseRow.cumulativePercent}%
                           </td>
                         </tr>
                       )}
