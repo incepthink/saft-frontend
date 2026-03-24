@@ -1,6 +1,4 @@
-import { createContext, useContext, ReactNode, useMemo } from "react";
-import { useConnect } from "@/hooks/useConnect";
-import { useAccounts } from "@/hooks/useAccounts";
+import { createContext, useContext, ReactNode, useMemo, useState, useCallback } from "react";
 import { truncatePartyId } from "@/data/listings";
 
 interface WalletContextType {
@@ -17,24 +15,26 @@ const WalletContext = createContext<WalletContextType>({
   isConnected: false,
 });
 
-export function WalletProvider({ children }: { children: ReactNode }) {
-  const { connect, disconnect, connectResult } = useConnect();
-  const accounts = useAccounts(connectResult);
+const DEMO_PARTY_ID =
+  "demo-user::12200e2e2b3f4a5d6c7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f::1220abcdef1234567890abcdef1234567890";
 
-  const isConnected = connectResult?.isConnected ?? false;
-  const primaryAccount = accounts?.find((a) => a.primary) ?? accounts?.[0];
-  const partyId = primaryAccount?.partyId;
-  const truncatedId = partyId ? truncatePartyId(partyId) : undefined;
+export function WalletProvider({ children }: { children: ReactNode }) {
+  const [isConnected, setIsConnected] = useState(false);
+
+  const connect = useCallback(async () => {
+    setIsConnected(true);
+  }, []);
+
+  const disconnect = useCallback(async () => {
+    setIsConnected(false);
+  }, []);
+
+  const partyId = isConnected ? DEMO_PARTY_ID : undefined;
+  const truncatedPartyId = partyId ? truncatePartyId(partyId) : undefined;
 
   const value = useMemo(
-    () => ({
-      connect,
-      disconnect,
-      isConnected,
-      partyId,
-      truncatedPartyId: truncatedId,
-    }),
-    [connect, disconnect, isConnected, partyId, truncatedId],
+    () => ({ connect, disconnect, isConnected, partyId, truncatedPartyId }),
+    [connect, disconnect, isConnected, partyId, truncatedPartyId],
   );
 
   return (

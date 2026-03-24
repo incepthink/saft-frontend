@@ -1,9 +1,10 @@
+import { useState } from "react";
 import { useParams, Link } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, ExternalLink } from "lucide-react";
 import {
   listings,
   getHolders,
-  userPositions,
   truncatePartyId,
   generateUserReleaseSchedule,
 } from "@/data/listings";
@@ -12,6 +13,7 @@ import { SwapCard } from "@/components/SwapCard";
 import { VestingChart } from "@/components/VestingChart";
 import { useWallet } from "@/contexts/WalletContext";
 import { Badge } from "@/components/ui/badge";
+import { axiosInstance } from "@/utils/axiosInstance";
 
 function statusColor(s: string) {
   if (s === "LIVE") return "bg-success/20 text-success border-success/30";
@@ -22,7 +24,20 @@ function statusColor(s: string) {
 export default function ListingDetailPage() {
   const { id } = useParams<{ id: string }>();
   const listing = listings.find((l) => l.id === id);
-  const { isConnected } = useWallet();
+  const { isConnected, partyId } = useWallet();
+  const [showAllRows, setShowAllRows] = useState(false);
+
+  const { data: apiBalance = null } = useQuery({
+    queryKey: ["position", Number(id)],
+    queryFn: async () => {
+      const res = await axiosInstance.get("/platform/user/position", {
+        params: { safty_user_id: 1, safty_saft_id: Number(id) },
+      });
+      const positions = res.data.data.positions as { balance: number }[];
+      return positions[0]?.balance ?? null;
+    },
+    enabled: isConnected && !!listing,
+  });
 
   if (!listing) {
     return (
@@ -40,11 +55,39 @@ export default function ListingDetailPage() {
     );
   }
 
+  const tokensHeld = apiBalance;
+  const releaseSchedule =
+    tokensHeld !== null
+      ? generateUserReleaseSchedule(listing, tokensHeld)
+      : [];
+
+  // Derive position summary from release schedule
+  const today = new Date();
+  let alreadyReleased = 0;
+  let nextReleaseDate = "—";
+  let nextReleaseAmount = 0;
+  for (const row of releaseSchedule) {
+    const d = new Date(row.date.replace(/\s*\(TGE\)/, ""));
+    if (d <= today) {
+      alreadyReleased += row.tokensReleased;
+    } else if (nextReleaseDate === "—" && row.tokensReleased > 0) {
+      nextReleaseDate = row.date.replace(" (TGE)", "");
+      nextReleaseAmount = row.tokensReleased;
+    }
+  }
+  const stillLocked = tokensHeld !== null ? Math.max(0, tokensHeld - alreadyReleased) : 0;
+  const estValue = tokensHeld !== null ? Math.round(tokensHeld * listing.tokenPrice) : 0;
+
   const holders = getHolders(listing.id);
-  const position = userPositions.find((p) => p.listingId === listing.id);
-  const releaseSchedule = position
-    ? generateUserReleaseSchedule(listing, position.tokensHeld)
-    : [];
+
+  const tgeRow = releaseSchedule[0];
+  const lockEndRow = releaseSchedule[listing.lockPeriodMonths];
+  const initialReleaseRows = releaseSchedule.slice(
+    listing.lockPeriodMonths + 1,
+    listing.lockPeriodMonths + 9,
+  );
+  const remainingRows = releaseSchedule.slice(listing.lockPeriodMonths + 9);
+  const visibleRows = [tgeRow, lockEndRow, ...initialReleaseRows, ...(showAllRows ? remainingRows : [])].filter(Boolean);
 
   const stats = [
     { label: "Token", value: listing.ticker },
@@ -142,10 +185,13 @@ export default function ListingDetailPage() {
             </div>
 
             {/* Section B — Vesting Chart */}
-            <VestingChart listing={listing} />
+            <VestingChart
+              listing={listing}
+              userTokensHeld={tokensHeld ?? undefined}
+            />
 
             {/* Section C — Your Position */}
-            {isConnected && position && (
+            {isConnected && tokensHeld !== null && (
               <div className="rounded-xl border border-border bg-card p-6">
                 <h3 className="font-display font-semibold text-lg mb-4">
                   Your Position in {listing.ticker} SAFT
@@ -156,7 +202,7 @@ export default function ListingDetailPage() {
                       Tokens Held
                     </div>
                     <div className="font-display font-bold text-lg">
-                      {position.tokensHeld.toLocaleString()}
+                      {tokensHeld.toLocaleString()}
                     </div>
                   </div>
                   <div className="rounded-lg bg-muted p-4">
@@ -164,7 +210,7 @@ export default function ListingDetailPage() {
                       USD Value
                     </div>
                     <div className="font-display font-bold text-lg">
-                      ${position.estValue.toLocaleString()}
+                      ${estValue.toLocaleString()}
                     </div>
                   </div>
                   <div className="rounded-lg bg-muted p-4">
@@ -172,13 +218,13 @@ export default function ListingDetailPage() {
                       Still Locked
                     </div>
                     <div className="font-display font-bold text-lg">
-                      {position.stillLocked.toLocaleString()}
+                      {stillLocked.toLocaleString()}
                     </div>
                   </div>
                 </div>
                 <p className="text-sm text-muted-foreground mb-4">
-                  Next Release: {position.nextReleaseDate} —{" "}
-                  {position.nextReleaseAmount.toLocaleString()} tokens
+                  Next Release: {nextReleaseDate} —{" "}
+                  {nextReleaseAmount.toLocaleString()} tokens
                 </p>
 
                 <h4 className="font-semibold text-sm mb-3">
@@ -200,7 +246,7 @@ export default function ListingDetailPage() {
                       </tr>
                     </thead>
                     <tbody>
-                      {releaseSchedule.slice(0, 10).map((row, i) => (
+                      {visibleRows.map((row, i) => (
                         <tr key={i} className="border-b border-border/50">
                           <td className="py-2 text-foreground">{row.date}</td>
                           <td className="py-2 text-foreground">
@@ -213,6 +259,16 @@ export default function ListingDetailPage() {
                       ))}
                     </tbody>
                   </table>
+                  {remainingRows.length > 0 && (
+                    <button
+                      onClick={() => setShowAllRows((v) => !v)}
+                      className="mt-3 text-sm text-primary hover:underline"
+                    >
+                      {showAllRows
+                        ? "Show less"
+                        : `Show ${remainingRows.length} more months`}
+                    </button>
+                  )}
                 </div>
               </div>
             )}
@@ -241,19 +297,30 @@ export default function ListingDetailPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {holders.map((h, i) => (
-                      <tr key={i} className="border-b border-border/50">
-                        <td className="py-2 font-mono text-foreground">
-                          {truncatePartyId(h.partyId)}
-                        </td>
-                        <td className="py-2 text-foreground">
-                          {h.tokens.toLocaleString()}
-                        </td>
-                        <td className="py-2 text-foreground">
-                          {h.percentOfTotal}%
-                        </td>
-                      </tr>
-                    ))}
+                    {holders.map((h, i) => {
+                      const isCurrentUser = !!partyId && h.partyId === partyId;
+                      return (
+                        <tr
+                          key={i}
+                          className={`border-b border-border/50 ${isCurrentUser ? "bg-primary/10 ring-1 ring-inset ring-primary/30" : ""}`}
+                        >
+                          <td className="py-2 font-mono text-foreground">
+                            {truncatePartyId(h.partyId)}
+                            {isCurrentUser && (
+                              <span className="ml-2 text-xs font-medium text-primary not-italic">
+                                (You)
+                              </span>
+                            )}
+                          </td>
+                          <td className="py-2 text-foreground">
+                            {h.tokens.toLocaleString()}
+                          </td>
+                          <td className="py-2 text-foreground">
+                            {h.percentOfTotal}%
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>

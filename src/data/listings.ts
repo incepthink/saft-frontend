@@ -40,7 +40,7 @@ export interface Holder {
 
 export const listings: Listing[] = [
   {
-    id: "anime-chain",
+    id: "1",
     name: "Anime Chain",
     ticker: "$ANIME",
     category: "GameFi",
@@ -62,7 +62,7 @@ export const listings: Listing[] = [
     logoEmoji: "🎌",
   },
   {
-    id: "novadefi",
+    id: "2",
     name: "NovaDeFi",
     ticker: "$NOVA",
     category: "DeFi",
@@ -73,7 +73,7 @@ export const listings: Listing[] = [
     raiseTarget: 2_000_000,
     minInvestment: 250,
     maxInvestment: 25_000,
-    acceptedCurrencies: ["USDC", "ETH"],
+    acceptedCurrencies: ["USDC"],
     tgeDate: "Oct 2025",
     tgeUnlockPercent: 15,
     lockPeriodMonths: 3,
