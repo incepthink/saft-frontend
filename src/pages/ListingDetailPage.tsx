@@ -62,14 +62,12 @@ export default function ListingDetailPage() {
   const today = new Date();
   let alreadyReleased = 0;
   let nextReleaseDate = "—";
-  let nextReleaseAmount = 0;
   for (const row of releaseSchedule) {
     const d = new Date(row.date.replace(/\s*\(TGE\)/, ""));
     if (d <= today) {
       alreadyReleased += row.tokensReleased;
     } else if (nextReleaseDate === "—" && row.tokensReleased > 0) {
       nextReleaseDate = row.date.replace(" (TGE)", "");
-      nextReleaseAmount = row.tokensReleased;
     }
   }
   const stillLocked =
@@ -101,19 +99,12 @@ export default function ListingDetailPage() {
   const tokenStats = [
     { label: "Token", value: listing.safty_ticker },
     { label: "Token Price", value: `$${listing.tokenPrice}` },
+    { label: `1 ${listing.safty_ticker}`, value: `100 ${listing.ticker}` },
     {
       label: "Total Allocation",
       value: `${totalSaftyTokens.toLocaleString()} ${listing.safty_ticker}`, //$${listing.raiseTarget.toLocaleString()} /
     },
     { label: "Accepted", value: listing.acceptedCurrencies.join(", ") },
-    {
-      label: "Min Investment",
-      value: `$${listing.minInvestment.toLocaleString()}`,
-    },
-    {
-      label: "Max Investment",
-      value: `$${listing.maxInvestment.toLocaleString()}`,
-    },
   ];
 
   return (
@@ -202,16 +193,24 @@ export default function ListingDetailPage() {
                     {s.label === "Token" ? (
                       <span className="flex items-center gap-1 text-sm font-medium text-foreground">
                         {s.value}
-                        <span className="relative group">
+                        {/* <span className="relative group">
                           <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
                           <span className="invisible group-hover:visible absolute right-0 bottom-full mb-1.5 w-max max-w-[200px] rounded-md bg-popover border border-border px-2.5 py-1.5 text-xs text-foreground shadow-md z-10 whitespace-nowrap">
                             1 {listing.safty_ticker} = 100 {listing.ticker}
                           </span>
-                        </span>
+                        </span> */}
                       </span>
                     ) : s.label === "Token Price" ? (
                       <span className="text-sm font-semibold text-primary">
                         {s.value}
+                      </span>
+                    ) : s.label === "Accepted" ? (
+                      <span className="flex items-center gap-1">
+                        <img
+                          src="https://cdn.sushi.com/image/upload/f_auto,c_limit,w_32/d_unknown.png/tokens/1/0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.jpg"
+                          alt="USDC"
+                          className="h-5 w-5 rounded-full"
+                        />
                       </span>
                     ) : (
                       <span className="text-sm font-medium text-foreground">
@@ -271,7 +270,7 @@ export default function ListingDetailPage() {
                 <h3 className="font-display font-semibold text-lg mb-4">
                   Your Position in {listing.safty_ticker}
                 </h3>
-                <div className="grid grid-cols-3 gap-4 mb-6">
+                <div className="grid grid-cols-2 gap-4 mb-6">
                   <div className="rounded-lg bg-muted p-4">
                     <div className="text-xs text-muted-foreground mb-1">
                       Tokens Held
@@ -288,14 +287,14 @@ export default function ListingDetailPage() {
                       ${estValue.toLocaleString()}
                     </div>
                   </div>
-                  <div className="rounded-lg bg-muted p-4">
+                  {/* <div className="rounded-lg bg-muted p-4">
                     <div className="text-xs text-muted-foreground mb-1">
                       Still Locked
                     </div>
                     <div className="font-display font-bold text-lg">
                       {stillLocked.toLocaleString()}
                     </div>
-                  </div>
+                  </div> */}
                 </div>
 
                 <h4 className="font-semibold text-sm mb-3">
@@ -309,10 +308,10 @@ export default function ListingDetailPage() {
                           Date
                         </th>
                         <th className="pb-2 text-muted-foreground font-medium text-center">
-                          {listing.ticker} Released
+                          {listing.safty_ticker}
                         </th>
                         <th className="pb-2 text-muted-foreground font-medium text-center">
-                          {listing.safty_ticker} Released
+                          {listing.ticker} Released
                         </th>
                       </tr>
                     </thead>
@@ -323,13 +322,13 @@ export default function ListingDetailPage() {
                             {nextReleaseRow.date}
                           </td>
                           <td className="py-2 text-foreground text-center">
+                            {nextReleaseRow.tokensReleased.toLocaleString()}
+                          </td>
+                          <td className="py-2 text-foreground text-center">
                             {Math.round(
                               (nextReleaseRow.tokensReleased / tokensHeld!) *
                                 totalUnderlyingTokens,
                             ).toLocaleString()}
-                          </td>
-                          <td className="py-2 text-foreground text-center">
-                            {nextReleaseRow.tokensReleased.toLocaleString()}
                           </td>
                         </tr>
                       )}
@@ -357,9 +356,9 @@ export default function ListingDetailPage() {
                       <th className="pb-2 text-muted-foreground font-medium">
                         SAFTY Tokens
                       </th>
-                      <th className="pb-2 text-muted-foreground font-medium">
+                      {/* <th className="pb-2 text-muted-foreground font-medium">
                         % of Total
-                      </th>
+                      </th> */}
                     </tr>
                   </thead>
                   <tbody>
@@ -381,9 +380,9 @@ export default function ListingDetailPage() {
                           <td className="py-2 text-foreground">
                             {h.tokens.toLocaleString()}
                           </td>
-                          <td className="py-2 text-foreground">
+                          {/* <td className="py-2 text-foreground">
                             {h.percentOfTotal}%
-                          </td>
+                          </td> */}
                         </tr>
                       );
                     })}

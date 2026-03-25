@@ -7,7 +7,6 @@ import {
   Tooltip,
   ResponsiveContainer,
   ReferenceLine,
-  Legend,
 } from "recharts";
 import type { Listing } from "@/data/listings";
 import { generateReleaseSchedule } from "@/data/listings";
@@ -36,17 +35,13 @@ interface VestingChartProps {
 }
 
 export function VestingChart({ listing, userTokensHeld }: VestingChartProps) {
-  const schedule = generateReleaseSchedule(listing);
-  const hasUser = userTokensHeld !== undefined && userTokensHeld > 0;
+  if (!userTokensHeld || userTokensHeld <= 0) return null;
 
-  const totalUnderlyingTokens = Math.round(listing.raiseTarget / listing.tokenPrice);
+  const schedule = generateReleaseSchedule(listing);
 
   const chartData = schedule.map((pt) => ({
     month: pt.month,
-    totalTokens: Math.round((pt.cumulative / 100) * totalUnderlyingTokens),
-    ...(hasUser
-      ? { userTokens: Math.round((pt.cumulative / 100) * userTokensHeld!) }
-      : {}),
+    userTokens: Math.round((pt.cumulative / 100) * userTokensHeld),
   }));
 
   return (
@@ -58,35 +53,21 @@ export function VestingChart({ listing, userTokensHeld }: VestingChartProps) {
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart
             data={chartData}
-            margin={{ top: 36, right: hasUser ? 60 : 10, left: 0, bottom: 0 }}
+            margin={{ top: 36, right: 10, left: 0, bottom: 0 }}
           >
             <defs>
-              <linearGradient id="vestingGradient" x1="0" y1="0" x2="0" y2="1">
+              <linearGradient id="userGradient" x1="0" y1="0" x2="0" y2="1">
                 <stop
                   offset="5%"
-                  stopColor="hsl(193, 100%, 50%)"
+                  stopColor="hsl(142,71%,45%)"
                   stopOpacity={0.3}
                 />
                 <stop
                   offset="95%"
-                  stopColor="hsl(193, 100%, 50%)"
+                  stopColor="hsl(142,71%,45%)"
                   stopOpacity={0}
                 />
               </linearGradient>
-              {hasUser && (
-                <linearGradient id="userGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop
-                    offset="5%"
-                    stopColor="hsl(142,71%,45%)"
-                    stopOpacity={0.3}
-                  />
-                  <stop
-                    offset="95%"
-                    stopColor="hsl(142,71%,45%)"
-                    stopOpacity={0}
-                  />
-                </linearGradient>
-              )}
             </defs>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(0,0%,16%)" />
             <XAxis
@@ -100,22 +81,11 @@ export function VestingChart({ listing, userTokensHeld }: VestingChartProps) {
               tickFormatter={(v) => tgeToMonthLabel(listing, v)}
             />
             <YAxis
-              yAxisId="left"
-              stroke="hsl(193,100%,50%)"
+              stroke="hsl(142,71%,45%)"
               fontSize={12}
               tickFormatter={(v) => formatTokenCount(v)}
-              domain={[0, totalUnderlyingTokens]}
+              domain={[0, userTokensHeld]}
             />
-            {hasUser && (
-              <YAxis
-                yAxisId="right"
-                orientation="right"
-                stroke="hsl(142,71%,45%)"
-                fontSize={12}
-                tickFormatter={(v) => formatTokenCount(v)}
-                domain={[0, userTokensHeld!]}
-              />
-            )}
             <Tooltip
               contentStyle={{
                 backgroundColor: "hsl(0,0%,8.6%)",
@@ -123,24 +93,13 @@ export function VestingChart({ listing, userTokensHeld }: VestingChartProps) {
                 borderRadius: "8px",
                 color: "hsl(0,0%,95%)",
               }}
-              formatter={(v: number, name: string) =>
-                name === "userTokens"
-                  ? [`${v.toLocaleString()} ${listing.ticker}`, "Your Released"]
-                  : [`${v.toLocaleString()} ${listing.ticker}`, "Total Released"]
-              }
+              formatter={(v: number) => [
+                `${v.toLocaleString()} ${listing.ticker}`,
+                "Your Released",
+              ]}
               labelFormatter={(l) => tgeToMonthLabel(listing, Number(l))}
             />
-            {hasUser && (
-              <Legend
-                formatter={(v) =>
-                  v === "userTokens"
-                    ? `Your Release (${listing.ticker})`
-                    : `Total Allocation Release (${listing.ticker})`
-                }
-              />
-            )}
             <ReferenceLine
-              yAxisId="left"
               x={0}
               stroke="hsl(193,100%,50%)"
               strokeDasharray="5 5"
@@ -152,7 +111,6 @@ export function VestingChart({ listing, userTokensHeld }: VestingChartProps) {
               }}
             />
             <ReferenceLine
-              yAxisId="left"
               x={listing.lockPeriodMonths}
               stroke="hsl(38,92%,50%)"
               strokeDasharray="5 5"
@@ -164,25 +122,13 @@ export function VestingChart({ listing, userTokensHeld }: VestingChartProps) {
               }}
             />
             <Area
-              yAxisId="left"
               type="monotone"
-              dataKey="totalTokens"
-              stroke="hsl(193,100%,50%)"
+              dataKey="userTokens"
+              stroke="hsl(142,71%,45%)"
               strokeWidth={2}
               fillOpacity={1}
-              fill="url(#vestingGradient)"
+              fill="url(#userGradient)"
             />
-            {hasUser && (
-              <Area
-                yAxisId="right"
-                type="monotone"
-                dataKey="userTokens"
-                stroke="hsl(142,71%,45%)"
-                strokeWidth={2}
-                fillOpacity={1}
-                fill="url(#userGradient)"
-              />
-            )}
           </AreaChart>
         </ResponsiveContainer>
       </div>

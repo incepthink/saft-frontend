@@ -40,10 +40,8 @@ export function SwapCard({ listing }: { listing: Listing }) {
 
   const handleSwap = async () => {
     if (tab === "BUY") {
-      if (!val || val < listing.minInvestment || val > listing.maxInvestment) {
-        toast.error(
-          `Amount must be between $${listing.minInvestment.toLocaleString()} and $${listing.maxInvestment.toLocaleString()}`,
-        );
+      if (!val || val <= 0) {
+        toast.error("Please enter a valid amount");
         return;
       }
     } else {
@@ -103,99 +101,111 @@ export function SwapCard({ listing }: { listing: Listing }) {
           <p className="text-lg font-semibold">Coming Soon...</p>
         </div>
       ) : (
-      <div className="space-y-4">
-        {/* You Pay */}
-        <div>
-          <label className="text-xs text-muted-foreground mb-1.5 block">
-            You Pay
-          </label>
-          <div className="rounded-lg border border-border bg-muted px-4 py-3 flex items-center gap-3">
-            <input
-              type="number"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              placeholder="0.00"
-              className="flex-1 bg-transparent text-foreground placeholder:text-muted-foreground focus:outline-none"
-            />
-            <span className="text-sm font-medium text-foreground shrink-0">
-              {tab === "BUY" ? "USDC" : listing.ticker}
-            </span>
-          </div>
-          {isConnected && (
-            <p className="text-xs text-muted-foreground mt-1.5">
-              Balance:{" "}
-              {tab === "BUY"
-                ? `${USDC_BALANCE.toLocaleString()} USDC`
-                : `${tokenBalance.toLocaleString()} ${listing.ticker}`}
-            </p>
-          )}
-        </div>
-
-        <div className="flex justify-center">
-          <div className="rounded-full border border-border bg-muted p-2">
-            <ArrowDown className="h-4 w-4 text-primary" />
-          </div>
-        </div>
-
-        {/* You Receive */}
-        <div>
-          <label className="text-xs text-muted-foreground mb-1.5 block">
-            You Receive
-          </label>
-          <div className="rounded-lg border border-border bg-muted px-4 py-3 flex items-center justify-between">
-            <span className="text-foreground">
-              {tab === "BUY"
-                ? tokensReceived
-                  ? tokensReceived.toLocaleString(undefined, {
-                      maximumFractionDigits: 0,
-                    })
-                  : "0"
-                : usdcReceived
-                  ? usdcReceived.toLocaleString(undefined, {
-                      maximumFractionDigits: 2,
-                    })
-                  : "0"}
-            </span>
-            <span className="text-sm font-medium text-muted-foreground">
-              {tab === "BUY" ? listing.ticker : "USDC"}
-            </span>
-          </div>
-        </div>
-
-        {/* Rate & limits */}
-        <div className="space-y-1 text-xs text-muted-foreground">
+        <div className="space-y-4">
+          {/* You Pay */}
           <div>
-            Rate: 1 {listing.ticker} = ${listing.tokenPrice} USDC
-          </div>
-          {tab === "BUY" && (
-            <div>
-              Min: ${listing.minInvestment.toLocaleString()} · Max: $
-              {listing.maxInvestment.toLocaleString()}
+            <label className="text-xs text-muted-foreground mb-1.5 block">
+              You Pay
+            </label>
+            <div className="rounded-lg border border-border bg-muted px-4 py-3 flex items-center gap-3">
+              <input
+                type="number"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                placeholder="0.00"
+                className="flex-1 bg-transparent text-foreground placeholder:text-muted-foreground focus:outline-none"
+              />
+              <span className="text-sm font-medium text-foreground shrink-0">
+                {tab === "BUY" ? (
+                  <img
+                    src="https://cdn.sushi.com/image/upload/f_auto,c_limit,w_32/d_unknown.png/tokens/1/0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.jpg"
+                    alt="USDC"
+                    className="h-5 w-5 rounded-full"
+                  />
+                ) : (
+                  listing.ticker
+                )}
+              </span>
             </div>
+            {isConnected && (
+              <p className="text-xs text-muted-foreground mt-1.5">
+                Balance:{" "}
+                {tab === "BUY" ? (
+                  <>{USDC_BALANCE.toLocaleString()} USDC</>
+                ) : (
+                  `${tokenBalance.toLocaleString()} ${listing.ticker}`
+                )}
+              </p>
+            )}
+          </div>
+
+          <div className="flex justify-center">
+            <div className="rounded-full border border-border bg-muted p-2">
+              <ArrowDown className="h-4 w-4 text-primary" />
+            </div>
+          </div>
+
+          {/* You Receive */}
+          <div>
+            <label className="text-xs text-muted-foreground mb-1.5 block">
+              You Receive
+            </label>
+            <div className="rounded-lg border border-border bg-muted px-4 py-3 flex items-center justify-between">
+              <span className="text-foreground">
+                {tab === "BUY"
+                  ? tokensReceived
+                    ? tokensReceived.toLocaleString(undefined, {
+                        maximumFractionDigits: 0,
+                      })
+                    : "0"
+                  : usdcReceived
+                    ? usdcReceived.toLocaleString(undefined, {
+                        maximumFractionDigits: 2,
+                      })
+                    : "0"}
+              </span>
+              <span className="text-sm font-medium text-muted-foreground">
+                {tab === "BUY" ? (
+                  listing.ticker
+                ) : (
+                  <img
+                    src="https://cdn.sushi.com/image/upload/f_auto,c_limit,w_32/d_unknown.png/tokens/1/0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.jpg"
+                    alt="USDC"
+                    className="h-5 w-5 rounded-full"
+                  />
+                )}
+              </span>
+            </div>
+          </div>
+
+          {/* Rate & limits */}
+          <div className="space-y-1 text-xs text-muted-foreground">
+            <div>
+              Rate: 1 {listing.safty_ticker} = ${listing.tokenPrice} USDC
+            </div>
+          </div>
+
+          {isConnected ? (
+            <Button
+              onClick={handleSwap}
+              disabled={isLoading}
+              className="w-full bg-primary text-primary-foreground hover:bg-primary/90 h-12 text-base font-semibold"
+            >
+              {isLoading
+                ? "Processing…"
+                : tab === "BUY"
+                  ? `Buy ${listing.ticker}`
+                  : `Sell ${listing.ticker}`}
+            </Button>
+          ) : (
+            <Button
+              onClick={connect}
+              className="w-full bg-primary text-primary-foreground hover:bg-primary/90 h-12 text-base font-semibold gap-2"
+            >
+              <Wallet className="h-4 w-4" /> Connect Wallet
+            </Button>
           )}
         </div>
-
-        {isConnected ? (
-          <Button
-            onClick={handleSwap}
-            disabled={isLoading}
-            className="w-full bg-primary text-primary-foreground hover:bg-primary/90 h-12 text-base font-semibold"
-          >
-            {isLoading
-              ? "Processing…"
-              : tab === "BUY"
-                ? `Buy ${listing.ticker}`
-                : `Sell ${listing.ticker}`}
-          </Button>
-        ) : (
-          <Button
-            onClick={connect}
-            className="w-full bg-primary text-primary-foreground hover:bg-primary/90 h-12 text-base font-semibold gap-2"
-          >
-            <Wallet className="h-4 w-4" /> Connect Wallet
-          </Button>
-        )}
-      </div>
       )}
     </div>
   );

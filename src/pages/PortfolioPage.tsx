@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import {
   AreaChart,
@@ -8,7 +9,6 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  Legend,
 } from "recharts";
 import {
   Wallet,
@@ -97,8 +97,18 @@ function derivePositionRow(pos: ApiPosition) {
 
 function buildTimelineData(positions: ApiPosition[]) {
   const monthNames = [
-    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
   ];
   const months: Record<string, Record<string, number>> = {};
 
@@ -120,7 +130,7 @@ function buildTimelineData(positions: ApiPosition[]) {
     for (const row of schedule) {
       const label = row.date.replace(" (TGE)", "");
       if (months[label] !== undefined) {
-        const delta = Math.round(row.tokensReleased * pos.safty_saft.tokenPrice);
+        const delta = row.tokensReleased;
         cumulative[key] = (cumulative[key] ?? 0) + delta;
         months[label][key] = cumulative[key];
       }
@@ -129,7 +139,9 @@ function buildTimelineData(positions: ApiPosition[]) {
 
   // Forward-fill months with no new releases so the line stays continuous
   const monthKeys = Object.keys(months);
-  const tickerSet = new Set(Object.values(months).flatMap((v) => Object.keys(v)));
+  const tickerSet = new Set(
+    Object.values(months).flatMap((v) => Object.keys(v)),
+  );
   const lastVal: Record<string, number> = {};
   for (const m of monthKeys) {
     for (const t of tickerSet) {
@@ -153,7 +165,11 @@ const CHART_COLORS = [
 
 export default function PortfolioPage() {
   const { isConnected, connect } = useWallet();
-  const { data: apiPositions = [], isLoading: loading, isError } = useQuery({
+  const {
+    data: apiPositions = [],
+    isLoading: loading,
+    isError,
+  } = useQuery({
     queryKey: ["positions"],
     queryFn: async () => {
       const res = await axiosInstance.get("/platform/user/position", {
@@ -213,13 +229,7 @@ export default function PortfolioPage() {
       label: "Active Positions",
       value: loading ? "—" : String(activePositions),
     },
-    {
-      icon: DollarSign,
-      label: "Total Token Value",
-      value: loading
-        ? "—"
-        : `$${Math.round(totalTokenValue).toLocaleString()}`,
-    },
+
     {
       icon: Calendar,
       label: "Next Release",
@@ -230,9 +240,13 @@ export default function PortfolioPage() {
   const timelineData = buildTimelineData(apiPositions);
   const tickerKeys = [
     ...new Set(
-      apiPositions.map((p) => p.safty_saft.ticker.replace("$", "").toLowerCase()),
+      apiPositions.map((p) =>
+        p.safty_saft.ticker.replace("$", "").toLowerCase(),
+      ),
     ),
   ];
+  const [selectedTicker, setSelectedTicker] = useState<string | null>(null);
+  const activeKey = selectedTicker ?? tickerKeys[0] ?? null;
 
   return (
     <div className="min-h-screen bg-background">
@@ -241,7 +255,7 @@ export default function PortfolioPage() {
         <h1 className="font-display text-3xl font-bold mb-8">Portfolio</h1>
 
         {/* Summary Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
           {summaryCards.map((c) => (
             <div
               key={c.label}
@@ -335,7 +349,7 @@ export default function PortfolioPage() {
         {!loading && !isError && tickerKeys.length > 0 && (
           <div className="rounded-xl border border-border bg-card p-6">
             <h2 className="font-display font-semibold text-lg mb-6">
-              Cumulative Token Value Unlocked
+              Cumulative Tokens Unlocked
             </h2>
             <div className="h-72">
               <ResponsiveContainer width="100%" height="100%">
@@ -366,10 +380,7 @@ export default function PortfolioPage() {
                       </linearGradient>
                     ))}
                   </defs>
-                  <CartesianGrid
-                    strokeDasharray="3 3"
-                    stroke="hsl(0,0%,16%)"
-                  />
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(0,0%,16%)" />
                   <XAxis
                     dataKey="month"
                     stroke="hsl(0,0%,55%)"
@@ -382,7 +393,7 @@ export default function PortfolioPage() {
                   <YAxis
                     stroke="hsl(0,0%,55%)"
                     fontSize={12}
-                    tickFormatter={(v) => `$${v}`}
+                    tickFormatter={(v) => v.toLocaleString()}
                   />
                   <Tooltip
                     contentStyle={{
@@ -392,24 +403,48 @@ export default function PortfolioPage() {
                       color: "hsl(0,0%,95%)",
                     }}
                     formatter={(v: number, name: string) => [
-                      `$${v}`,
+                      v.toLocaleString(),
                       `$${name.toUpperCase()}`,
                     ]}
                   />
-                  <Legend formatter={(v) => `$${v.toUpperCase()}`} />
-                  {tickerKeys.map((key, i) => (
+                  {activeKey && (
                     <Area
-                      key={key}
                       type="monotone"
-                      dataKey={key}
-                      stackId="1"
-                      stroke={CHART_COLORS[i % CHART_COLORS.length]}
-                      fill={`url(#grad-${key})`}
+                      dataKey={activeKey}
+                      stroke={
+                        CHART_COLORS[
+                          tickerKeys.indexOf(activeKey) % CHART_COLORS.length
+                        ]
+                      }
+                      fill={`url(#grad-${activeKey})`}
                       strokeWidth={2}
                     />
-                  ))}
+                  )}
                 </AreaChart>
               </ResponsiveContainer>
+            </div>
+            <div className="flex gap-2 mt-4 flex-wrap">
+              {tickerKeys.map((key, i) => (
+                <button
+                  key={key}
+                  onClick={() => setSelectedTicker(key)}
+                  className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
+                    activeKey === key
+                      ? "border-transparent text-background"
+                      : "border-border text-muted-foreground hover:text-foreground"
+                  }`}
+                  style={
+                    activeKey === key
+                      ? {
+                          backgroundColor:
+                            CHART_COLORS[i % CHART_COLORS.length],
+                        }
+                      : {}
+                  }
+                >
+                  ${key.toUpperCase()}
+                </button>
+              ))}
             </div>
           </div>
         )}
