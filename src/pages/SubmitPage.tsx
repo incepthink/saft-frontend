@@ -120,7 +120,7 @@ export default function SubmitPage() {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <div className="container max-w-2xl py-8">
+      <div className="container max-w-2xl py-8 pt-24">
         <h1 className="font-display text-3xl font-bold mb-8">
           Submit a Listing
         </h1>

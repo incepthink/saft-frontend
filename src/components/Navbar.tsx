@@ -28,7 +28,7 @@ export function Navbar() {
                 key={l.to}
                 to={l.to}
                 className={`rounded-md px-3 py-2 text-sm font-medium transition-colors ${
-                  pathname === l.to
+                  (l.to === "/explore" ? pathname === "/explore" || pathname.startsWith("/listing/") : pathname === l.to)
                     ? "text-primary"
                     : "text-muted-foreground hover:text-foreground"
                 }`}
