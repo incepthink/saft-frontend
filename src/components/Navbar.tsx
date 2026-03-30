@@ -3,7 +3,7 @@ import { WalletButton } from "@/components/WalletButton";
 import { Zap } from "lucide-react";
 
 const navLinks = [
-  { to: "/", label: "Explore" },
+  { to: "/explore", label: "Explore" },
   { to: "/portfolio", label: "Portfolio" },
   { to: "/submit", label: "Submit Listing" },
 ];
@@ -12,7 +12,7 @@ export function Navbar() {
   const { pathname } = useLocation();
 
   return (
-    <nav className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-xl">
+    <nav className="fixed  w-full top-0 z-50 border-b border-border bg-background/80 backdrop-blur-xl">
       <div className="container flex h-16 items-center justify-between">
         <div className="flex items-center gap-8">
           <Link

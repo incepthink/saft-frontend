@@ -179,6 +179,7 @@ export default function PortfolioPage() {
     },
     enabled: isConnected,
   });
+  const [selectedTicker, setSelectedTicker] = useState<string | null>(null);
 
   if (!isConnected) {
     return (
@@ -245,13 +246,12 @@ export default function PortfolioPage() {
       ),
     ),
   ];
-  const [selectedTicker, setSelectedTicker] = useState<string | null>(null);
   const activeKey = selectedTicker ?? tickerKeys[0] ?? null;
 
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <div className="container py-8">
+      <div className="container py-8 pt-24">
         <h1 className="font-display text-3xl font-bold mb-8">Portfolio</h1>
 
         {/* Summary Cards */}

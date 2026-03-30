@@ -8,6 +8,7 @@ import ListingDetailPage from "./pages/ListingDetailPage";
 import PortfolioPage from "./pages/PortfolioPage";
 import SubmitPage from "./pages/SubmitPage";
 import NotFound from "./pages/NotFound";
+import Landing from "./pages/Landing";
 
 const queryClient = new QueryClient();
 
@@ -18,7 +19,8 @@ const App = () => (
       <WalletProvider>
         <BrowserRouter basename="/examples/safty">
           <Routes>
-            <Route path="/" element={<ExplorePage />} />
+            <Route path="/" element={<Landing />} />
+            <Route path="/explore" element={<ExplorePage />} />
             <Route path="/listing/:id" element={<ListingDetailPage />} />
             <Route path="/portfolio" element={<PortfolioPage />} />
             <Route path="/submit" element={<SubmitPage />} />
